@@ -18,7 +18,8 @@ metadata:
     app: jenkins
 spec:
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteOnce
+  storageClassName: managed-premium
   resources:
     requests:
       storage: 5Gi
@@ -40,12 +41,19 @@ spec:
       containers:
       - name: jenkins
         image: jrvs/jarvis_jenkins
+        env:
+        #Disable CSRF
+        - name: JAVA_OPTS
+          value: -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true
         ports:
         - containerPort: 8080
         volumeMounts:
         - name: jenkins-home
           mountPath: /var/jenkins_home
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
       volumes:
-      - name: jenkins-persistent-storage
+      - name: jenkins-home
         persistentVolumeClaim:
           claimName: jenkins-pv-claim
